@@ -1,0 +1,45 @@
+<project name="FileSplitter" default="compile" basedir=".">
+
+  <property name="build.compiler" value="modern"/>
+  <property name="src" value="src"/>
+  <property name="BUILD" value="build"/>
+  <property name="classes" value="${BUILD}/classes"/>
+
+<target name="compile"
+          depends="FileSplitter"/>
+
+<target name="clean">
+       <delete dir="${BUILD}"/>
+</target>
+
+  <!-- Prepare target directories -->
+  <target name="prepare">
+        <mkdir dir="${BUILD}"/>
+        <mkdir dir="${classes}"/>
+  </target>
+
+ <target name="FileSplitter" depends="prepare">
+    <javac srcdir="${src}"
+           excludes="**/package.html"
+           destdir="${classes}"
+           classpath="${classes}"
+           debug="on"
+           optimize="on"
+           deprecation="on"
+includeantruntime="false"/>
+ </target>
+
+<target name="jar">
+        <mkdir dir="${BUILD}/jar"/>
+        <jar destfile="${BUILD}/jar/FileSplitter.jar" basedir="${BUILD}/classes">
+            <manifest>
+                <attribute name="Main-Class" value="driver.Driver"/>
+            </manifest>
+        </jar>
+</target>
+
+<target name="run" depends="jar">
+        <java jar="${BUILD}/jar/FileSplitter.jar" fork="true">
+</java>	
+</target>
+</project>
