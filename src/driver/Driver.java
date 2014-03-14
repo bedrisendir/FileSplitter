@@ -15,7 +15,7 @@ public class Driver {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		AsyncFileSplitter s=new AsyncFileSplitter(128L*1024*1024);
+		AsyncFileSplitter s=new AsyncFileSplitter(64L*1024*1024);
 		s.map();
 		s.split();
 		
