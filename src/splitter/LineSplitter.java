@@ -7,7 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class LineSplitter extends Splitter {
-
+	BufferedReader reader = null;
+	BufferedWriter writer = null;
+	
 	public LineSplitter() {
 	}
 
@@ -24,8 +26,7 @@ public class LineSplitter extends Splitter {
 				/ (double) this.conf.num_maps);
 
 		String line;
-		BufferedReader reader = null;
-		BufferedWriter writer = null;
+
 
 		try {
 			reader = new BufferedReader(new FileReader(input));
