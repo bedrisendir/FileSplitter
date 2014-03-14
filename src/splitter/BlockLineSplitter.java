@@ -28,7 +28,7 @@ public class BlockLineSplitter {
 
 	public void map() {
 		File file = new File(
-				"/home/bsendir1/workspacemarla/FileSplitter/materials_dbv2-04052013.json");
+				"/import/linux/home/bsendir1/FileSplitter/FileSplitter/input/materials_dbv2-04052013.json");
 		try {
 			RandomAccessFile raf;
 			raf = new RandomAccessFile(file, "rw");

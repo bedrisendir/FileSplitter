@@ -46,6 +46,10 @@ public class LineSplitter extends Splitter {
 				if (writer == null) {
 					writer = new BufferedWriter(new FileWriter(output + piece,
 							true));
+					if(piece%10 == 0){
+					    System.out.println("Piece " + piece + " " +  num_lines/lines_per_piece );
+					}
+
 				}
 
 				writer.write(line + "\n");
@@ -57,6 +61,7 @@ public class LineSplitter extends Splitter {
 					writer.close();
 					writer = null;
 				}
+
 			}
 			if (writer != null) {
 				writer.close();
