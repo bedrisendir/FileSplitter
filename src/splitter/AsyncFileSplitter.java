@@ -4,57 +4,54 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-
-
-
-public class BlockLineSplitter {
-	ArrayList<MappedByteBuffer> maps = new ArrayList<MappedByteBuffer>();
+public class AsyncFileSplitter {
+	ArrayList<Long> start = new ArrayList<Long>();
+	ArrayList<Long> end = new ArrayList<Long>();
+	AsynchronousFileChannel fileChannel ;
 	long chunkSize;
 	long offset=0;
 	byte[] lf= System.getProperty("line.separator").getBytes();
 	
 	
-	public BlockLineSplitter(long nChunkSize) {
+	public AsyncFileSplitter(long nChunkSize) {
 		chunkSize = nChunkSize;
-	}
+			}
 
 	public void map() {
 		File file = new File(
-				"/import/linux/home/bsendir1/FileSplitter/FileSplitter/materials_dbv2-04052013.json");
+				"/home/bsendir1/workspacemarla/materials_dbv2-04052013.json");
+		
 		try {
 			RandomAccessFile raf;
 			raf = new RandomAccessFile(file, "rw");
 			System.out.println(file.length());
 			raf.setLength(file.length());
-			FileChannel chan = raf.getChannel();
 			long t0 = System.currentTimeMillis();
 			System.out.println(raf.length());
 		
 			while (offset < raf.length()) {
-				MappedByteBuffer map;
 				if ((offset + chunkSize) > raf.length()) {
 					chunkSize = raf.length() - offset;
 				}
-				System.out.println("   " + chan.position());
 				long diff=findNextLine(raf);
-				System.out.println("DIFF "+ diff +"   " + chan.position());
-				map = chan.map(MapMode.READ_WRITE, offset, chunkSize+diff);
+				start.add(offset);
+				end.add(chunkSize+diff);
 				offset = offset+ chunkSize+ diff;
-				System.out.println("OFFSET "+ offset );
-				maps.add(map);
 			}
 			raf.close();
 			long t1 = System.currentTimeMillis();
 			System.out.println("Mapping Took: " + (t1 - t0) + "ms");
-			System.out.println("Created " + maps.size());
+			System.out.println("ITEMS "+start.size() + " "+ end.size()+" ");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -76,8 +73,16 @@ public class BlockLineSplitter {
 		ExecutorService e = Executors.newFixedThreadPool(cores);
 		System.out.println("Executing with " + cores + " threads.");
 		long t0 = System.currentTimeMillis();
-		for (int i = 0; i < maps.size(); i++) {
-			e.execute(new SplitWorker(maps.get(i), i));
+		try {
+			fileChannel = AsynchronousFileChannel.open(Paths.get("/home/bsendir1/workspacemarla/materials_dbv2-04052013.json"));
+			System.out.println("-------------------------->" + fileChannel.size());
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		for (int i = 0; i < start.size(); i++) {
+			e.execute(new SplitWorker(start.get(i),end.get(i), i));
+			
 		}
 		e.shutdown();
 		try {
@@ -93,22 +98,31 @@ public class BlockLineSplitter {
 	
 	
 	public class SplitWorker implements Runnable {
-		MappedByteBuffer map;
 		int split_num;
-
-		public SplitWorker(MappedByteBuffer nmappedByteBuffer, int i) {
-			map = nmappedByteBuffer;
+		Long st;
+		Long en;
+		
+		public SplitWorker(Long nstart,Long nend, int i) {
+			st=nstart;
+			en=nend;
 			split_num = i;
 		}
 		public void run() {
-			if((split_num%10)==0){
-				System.out.println(split_num+ "th task started");
-			}
+			
+			System.out.println(split_num+ "th task started");
+
 			FileChannel wChannel;
 			try {
-				wChannel = new FileOutputStream(new File("splits/temp"
+				wChannel = new FileOutputStream(new File("/home/bsendir1/workspacemarla/FileSplitter_new/splits/temp"
 						+ split_num)).getChannel();
-				wChannel.write(map.load().asReadOnlyBuffer());
+			       
+				ByteBuffer buf = ByteBuffer.allocateDirect((int)((long) en));
+				System.out.println("test   " + (int)((long) en));
+				Future<Integer> x=fileChannel.read(buf,st);
+				while(!x.isDone()){}
+				System.out.println("CAPACITY "+buf.capacity());
+				buf.flip();
+				wChannel.write(buf);
 				// maps.get(i).load().asReadOnlyBuffer()
 				wChannel.close();
 				// capacity gets map size

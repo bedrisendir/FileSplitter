@@ -30,7 +30,7 @@ public class BlockSplitter {
 	    raf = new RandomAccessFile(file, "r");
 	    System.out.println(file.length());
 	    raf.setLength(file.length());
-	    AsynchronousFileChannel chan = raf.getChannel();
+	    FileChannel chan = raf.getChannel();
 	    long t0 = System.currentTimeMillis();
 	    System.out.println(raf.length());
 	    long chunkOff = 0;
