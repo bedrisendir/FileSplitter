@@ -1,21 +1,25 @@
 package driver;
 
+import java.io.IOException;
+
 import splitter.AsyncFileSplitter;
 import splitter.BlockLineSplitter;
 import splitter.BlockSplitter;
 import splitter.LineSplitter;
 import splitter.Splitter;
 import splitter.XMLSplitter;
+import splitter.ZeroCopyLineSplitter;
 
 public class Driver {
 
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		
-		AsyncFileSplitter s=new AsyncFileSplitter(64L*1024*1024);
+		ZeroCopyLineSplitter s=new ZeroCopyLineSplitter(128L*1024*1024);
 		s.map();
 		s.split();
 		
