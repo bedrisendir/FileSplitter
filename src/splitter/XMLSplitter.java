@@ -7,17 +7,17 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class XMLSplitter extends Splitter {
-	private byte[] start_tag; 
-	private byte[] end_tag; 
+	private byte[] start_tag;
+	private byte[] end_tag;
 	private InputStream reader = null;
 	private DataOutputStream writer = null;
-	int num_of_records=0;
-	
+	int num_of_records = 0;
+
 	public XMLSplitter(String nstart_tag, String nend_tag) {
 		super();
 		start_tag = nstart_tag.getBytes();
 		end_tag = nend_tag.concat("\n").getBytes();
-		num_of_records=1000;
+		num_of_records = 1000;
 	}
 
 	@Override

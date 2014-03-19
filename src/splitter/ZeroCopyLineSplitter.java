@@ -2,23 +2,14 @@ package splitter;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
-import splitter.AsyncFileSplitter.SplitWorker;
 
 public class ZeroCopyLineSplitter {
 	ArrayList<Long> start = new ArrayList<Long>();
@@ -112,11 +103,18 @@ public class ZeroCopyLineSplitter {
 				destination = new FileOutputStream(
 						"/home/bsendir1/workspacemarla/FileSplitter_new/splits/temp"
 								+ split_num).getChannel();
+				long p1 = System.currentTimeMillis();
 				source = new FileInputStream(
 						"/home/bsendir1/workspacemarla/materials_dbv2-04052013.json")
 						.getChannel();
+				long p2 = System.currentTimeMillis();
+				System.out.println("Channel costs :" + (p2-p1));
 				source.position(st);
+				long p3 = System.currentTimeMillis();
+				System.out.println("Seeking costs :" + (p3-p2));
 				destination.transferFrom(source,0,en);
+				long p4 = System.currentTimeMillis();
+				System.out.println("Transfer costs :" + (p4-p3));
 				System.out.println("Split "+ split_num + " left source at "+ source.position());
 				destination.close();
 

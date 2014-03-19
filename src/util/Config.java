@@ -45,7 +45,7 @@ public class Config {
 		// Load the properties
 		Properties file = new Properties();
 		try {
-			file.load(new FileInputStream("conf/master.properties"));
+			file.load(new FileInputStream("/home/bsendir1/workspacemarla/FileSplitter_new/conf/master.properties"));
 		} catch (IOException ex) {
 			log.severe("conf/master.properties file could not be read. Exiting.");
 			//System.exit(1);

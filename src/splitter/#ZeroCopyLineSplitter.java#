@@ -1,33 +1,29 @@
 package splitter;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class AsyncFileSplitter {
+public class ZeroCopyLineSplitter {
 	ArrayList<Long> start = new ArrayList<Long>();
 	ArrayList<Long> end = new ArrayList<Long>();
-	AsynchronousFileChannel fileChannel;
 	long chunkSize;
 	long offset = 0;
-	byte[] lf = System.getProperty("line.separator").getBytes();
 
-	public AsyncFileSplitter(long nChunkSize) {
+	public ZeroCopyLineSplitter(long nChunkSize) {
 		chunkSize = nChunkSize;
 	}
 
 	public void map() {
 		File file = new File(
-				"/home/bsendir1/workspacemarla/materials_dbv2-04052013.json");
+				"/home/bsendir1/workspacemarla/128doubledata.txt");
 
 		try {
 			RandomAccessFile raf;
@@ -68,24 +64,15 @@ public class AsyncFileSplitter {
 		return newp - old;
 	}
 
-	public void split() {
-		int cores = Runtime.getRuntime().availableProcessors();
-		ExecutorService e = Executors.newFixedThreadPool(cores);
-		System.out.println("Executing with " + cores + " threads.");
+	public void split() throws IOException {
 		long t0 = System.currentTimeMillis();
-		try {
-			fileChannel = AsynchronousFileChannel
-					.open(Paths
-							.get("/home/bsendir1/workspacemarla/materials_dbv2-04052013.json"));
-			//System.out.println("-------------------------->"
-			//		+ fileChannel.size());
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
+		int cores = Runtime.getRuntime().availableProcessors();
+		ExecutorService e = Executors.newFixedThreadPool(2);
+		System.out.println("Executing with " + cores + " threads.");
+	
+
 		for (int i = 0; i < start.size(); i++) {
 			e.execute(new SplitWorker(start.get(i), end.get(i), i));
-
 		}
 		e.shutdown();
 		try {
@@ -94,7 +81,6 @@ public class AsyncFileSplitter {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
 		long t1 = System.currentTimeMillis();
 		System.out.println("Splitting: " + (t1 - t0) + "ms");
 	}
@@ -111,30 +97,27 @@ public class AsyncFileSplitter {
 		}
 
 		public void run() {
-
-			System.out.println(split_num + "th task started");
-
-			AsynchronousFileChannel wChannel;
-			
 			try {
-			
-				ByteBuffer buf = ByteBuffer.allocateDirect((int) ((long) en));
-				//System.out.println("test   " + (int) ((long) en));
-				Future<Integer> x = fileChannel.read(buf, st);
-				while (!x.isDone()) {}
-				System.out.println("Thread" + split_num +" read file");
-				//System.out.println("CAPACITY " + buf.capacity());
-				buf.flip();
-				System.out.println("Thread" + split_num +" starts writing to file");
-				wChannel = AsynchronousFileChannel
-						.open(Paths
-								.get("/home/bsendir1/workspacemarla/FileSplitter_new/splits/temp"+ split_num),StandardOpenOption.CREATE,StandardOpenOption.WRITE);
+				FileChannel source = null;
+				FileChannel destination = null;
+				destination = new FileOutputStream(
+						"/home/bsendir1/workspacemarla/FileSplitter_new/splits/temp"
+								+ split_num).getChannel();
+				long p1 = System.currentTimeMillis();
+				source = new FileInputStream(
+						"/home/bsendir1/workspacemarla/input/128doubledata.txt")
+						.getChannel();
+				long p2 = System.currentTimeMillis();
+				System.out.println("Channel costs :" + (p2-p1));
+				source.position(st);
+				long p3 = System.currentTimeMillis();
+				System.out.println("Seeking costs :" + (p3-p2));
+				destination.transferFrom(source,0,en);
+				long p4 = System.currentTimeMillis();
+				System.out.println("Transfer costs :" + (p4-p3));
+				System.out.println("Split "+ split_num + " left source at "+ source.position());
+				destination.close();
 
-				Future<Integer> y = wChannel.write(buf, 0);
-				while (!y.isDone()) {}
-				// maps.get(i).load().asReadOnlyBuffer()
-				wChannel.close();
-				// capacity gets map size
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

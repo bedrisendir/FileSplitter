@@ -1,34 +1,41 @@
 package driver;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
-import splitter.AsyncFileSplitter;
-import splitter.BlockLineSplitter;
-import splitter.BlockSplitter;
-import splitter.LineSplitter;
-import splitter.Splitter;
-import splitter.XMLSplitter;
-import splitter.ZeroCopyLineSplitter;
+import splitter.RegexSplitter;
 
 public class Driver {
 
 	/**
 	 * @param args
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
-		
-		ZeroCopyLineSplitter s=new ZeroCopyLineSplitter(128L*1024*1024);
-		s.map();
-		s.split();
-		
-	    /*
-		LineSplitter s=new LineSplitter();
+		// long blocksize=64L*1024*1024;
+		// String html =
+		// "foo <a href='link1'>bar</a> bar teafaljsfnalfasf \n lasfjlsa;fnsaf  <a href='link2'>qux</a> foo";
+		Pattern p = Pattern.compile("<a href='(.*?)'>");
+
+		// Matcher m = p.matcher(html);
+		/*
+		 * if(m.matches()){ System.out.println("ss"); }
+		 * 
+		 * while(m.find()) { System.out.println(m.group());
+		 * System.out.println(m.group(0)); System.out.println(m.group(1)); }
+		 */
+		RegexSplitter s = new RegexSplitter(p);
 		s.make_splits();
-		long t1 = System.currentTimeMillis();
-		System.out.println("Line Splitting: " + (t1 - t0) + "ms");
-	    */
+
+		/*
+		 * AsyncFileSplitter s=new AsyncFileSplitter(blocksize); s.map();
+		 * s.split();
+		 */
+		/*
+		 * LineSplitter s=new LineSplitter(); s.make_splits(); long t1 =
+		 * System.currentTimeMillis(); System.out.println("Line Splitting: " +
+		 * (t1 - t0) + "ms");
+		 */
 	}
 
 }
