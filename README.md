@@ -5,7 +5,9 @@ Sequential Splitters
 ---------------------
 
 **RegexSplitter** : Splits num_of_records of matching Regex patterns.
+
 **XMLSplitter** : Splits num_of_records of XML objects by matching starttag and endtag. 
+
 **LineSplitter** : Marla Line Splitter
 
 Block Splitters
