@@ -24,10 +24,7 @@ public class LineSplitter extends Splitter {
 
 		int lines_per_piece = (int) Math.ceil((double) num_lines
 				/ (double) this.conf.num_maps);
-
 		String line;
-
-
 		try {
 			reader = new BufferedReader(new FileReader(input));
 		} catch (IOException e) {

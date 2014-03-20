@@ -23,7 +23,7 @@ public abstract class Splitter {
 		log.info("Creating initial splits...");
 		for (int i = 0; i < this.files.length; i++) {
 			String cur_file = this.files[i];
-			split(cur_file,this.conf.misc_path + "/input.task");
+			split(cur_file,this.conf.misc_path + "/input.task_"+i+"_");
 		}
 
 		log.info("Split " + this.files.length + " files across "
@@ -40,7 +40,7 @@ public abstract class Splitter {
 			return_array = new String[1];
 			return_array[0] = path;
 
-			// directory
+		// directory
 		} else if (file.isDirectory()) {
 			return_array = file.list();
 
@@ -48,7 +48,7 @@ public abstract class Splitter {
 				return_array[i] = path + "/" + return_array[i];
 			}
 
-			// doesn't exist
+		// doesn't exist
 		} else {
 			log.severe("Input file is neither a directory or a file. Exiting.");
 			System.exit(1);

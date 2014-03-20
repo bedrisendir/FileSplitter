@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import splitter.RegexSplitter;
+import splitter.Splitter;
 
 public class Driver {
 
@@ -15,8 +16,9 @@ public class Driver {
 		// long blocksize=64L*1024*1024;
 		// String html =
 		// "foo <a href='link1'>bar</a> bar teafaljsfnalfasf \n lasfjlsa;fnsaf  <a href='link2'>qux</a> foo";
+		
 		Pattern p = Pattern.compile("<a href='(.*?)'>");
-
+		
 		// Matcher m = p.matcher(html);
 		/*
 		 * if(m.matches()){ System.out.println("ss"); }
@@ -24,7 +26,8 @@ public class Driver {
 		 * while(m.find()) { System.out.println(m.group());
 		 * System.out.println(m.group(0)); System.out.println(m.group(1)); }
 		 */
-		RegexSplitter s = new RegexSplitter(p);
+		
+		Splitter s = new RegexSplitter(p,10);
 		s.make_splits();
 
 		/*

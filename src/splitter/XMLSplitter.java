@@ -22,7 +22,6 @@ public class XMLSplitter extends Splitter {
 
 	@Override
 	protected void split(String input, String output) {
-		// TODO Auto-generated method stub
 		try {
 			reader = new FileInputStream(input);
 		} catch (IOException e) {
