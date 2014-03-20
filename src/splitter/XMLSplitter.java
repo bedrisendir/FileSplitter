@@ -13,11 +13,11 @@ public class XMLSplitter extends Splitter {
 	private DataOutputStream writer = null;
 	int num_of_records = 0;
 
-	public XMLSplitter(String nstart_tag, String nend_tag) {
+	public XMLSplitter(String nstart_tag, String nend_tag,int n_num_of_records) {
 		super();
 		start_tag = nstart_tag.getBytes();
 		end_tag = nend_tag.concat("\n").getBytes();
-		num_of_records = 1000;
+		num_of_records = n_num_of_records;
 	}
 
 	@Override
@@ -27,10 +27,8 @@ public class XMLSplitter extends Splitter {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		int cur_records = 0;
 		int piece = 0;
-
 		try {
 			while (true) {
 				if (cur_records == num_of_records) {
@@ -77,7 +75,6 @@ public class XMLSplitter extends Splitter {
 				if (withinBlock) {
 					writer.write(b);
 				}
-
 				// check if we're matching:
 				if (b == match[i]) {
 					i++;

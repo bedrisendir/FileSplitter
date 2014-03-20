@@ -13,21 +13,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class AsyncFileSplitter {
-	ArrayList<Long> start = new ArrayList<Long>();
-	ArrayList<Long> end = new ArrayList<Long>();
-	AsynchronousFileChannel fileChannel;
-	long chunkSize;
-	long offset = 0;
-	byte[] lf = System.getProperty("line.separator").getBytes();
+public class AsyncFileSplitter extends Splitter {
+	private String input_path;
+	private String output_path;
+	private ArrayList<Long> start = new ArrayList<Long>();
+	private ArrayList<Long> end = new ArrayList<Long>();
+	private AsynchronousFileChannel fileChannel;
+	private long chunkSize;
+	private long offset = 0;
+
+	// byte[] lf = System.getProperty("line.separator").getBytes();
 
 	public AsyncFileSplitter(long nChunkSize) {
 		chunkSize = nChunkSize;
 	}
 
-	public void map() {
-		File file = new File(
-				"/home/bsendir1/workspacemarla/materials_dbv2-04052013.json");
+	private void map() {
+		File file = new File(input_path);
 
 		try {
 			RandomAccessFile raf;
@@ -49,10 +51,7 @@ public class AsyncFileSplitter {
 			raf.close();
 			long t1 = System.currentTimeMillis();
 			System.out.println("Mapping Took: " + (t1 - t0) + "ms");
-			System.out
-					.println("ITEMS " + start.size() + " " + end.size() + " ");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -68,35 +67,36 @@ public class AsyncFileSplitter {
 		return newp - old;
 	}
 
-	public void split() {
+	private void start_workers() {
 		int cores = Runtime.getRuntime().availableProcessors();
 		ExecutorService e = Executors.newFixedThreadPool(cores);
 		System.out.println("Executing with " + cores + " threads.");
 		long t0 = System.currentTimeMillis();
 		try {
-			fileChannel = AsynchronousFileChannel
-					.open(Paths
-							.get("/home/bsendir1/workspacemarla/materials_dbv2-04052013.json"));
-			//System.out.println("-------------------------->"
-			//		+ fileChannel.size());
+			fileChannel = AsynchronousFileChannel.open(Paths.get(input_path));
 		} catch (IOException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 		for (int i = 0; i < start.size(); i++) {
 			e.execute(new SplitWorker(start.get(i), end.get(i), i));
-
 		}
 		e.shutdown();
 		try {
 			e.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
 		long t1 = System.currentTimeMillis();
 		System.out.println("Splitting: " + (t1 - t0) + "ms");
+	}
+
+	@Override
+	protected void split(String input, String output) {
+		input_path = input;
+		output_path = output;
+		map();
+		start_workers();
 	}
 
 	public class SplitWorker implements Runnable {
@@ -111,32 +111,25 @@ public class AsyncFileSplitter {
 		}
 
 		public void run() {
-
 			System.out.println(split_num + "th task started");
-
 			AsynchronousFileChannel wChannel;
-			
 			try {
-			
 				ByteBuffer buf = ByteBuffer.allocateDirect((int) ((long) en));
-				//System.out.println("test   " + (int) ((long) en));
 				Future<Integer> x = fileChannel.read(buf, st);
-				while (!x.isDone()) {}
-				System.out.println("Thread" + split_num +" read file");
-				//System.out.println("CAPACITY " + buf.capacity());
+				while (!x.isDone()) {
+				}
+				System.out.println("Thread" + split_num + " read file");
 				buf.flip();
-				System.out.println("Thread" + split_num +" starts writing to file");
-				wChannel = AsynchronousFileChannel
-						.open(Paths
-								.get("/home/bsendir1/workspacemarla/FileSplitter_new/splits/temp"+ split_num),StandardOpenOption.CREATE,StandardOpenOption.WRITE);
-
+				System.out.println("Thread" + split_num
+						+ " starts writing to file");
+				wChannel = AsynchronousFileChannel.open(
+						Paths.get(output_path + split_num),
+						StandardOpenOption.CREATE, StandardOpenOption.WRITE);
 				Future<Integer> y = wChannel.write(buf, 0);
-				while (!y.isDone()) {}
-				// maps.get(i).load().asReadOnlyBuffer()
+				while (!y.isDone()) {
+				}
 				wChannel.close();
-				// capacity gets map size
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

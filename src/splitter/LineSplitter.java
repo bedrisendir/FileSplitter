@@ -10,8 +10,7 @@ public class LineSplitter extends Splitter {
 	BufferedReader reader = null;
 	BufferedWriter writer = null;
 	
-	public LineSplitter() {
-	}
+	public LineSplitter() {}
 
 	@Override
 	protected void split(String input, String output) {

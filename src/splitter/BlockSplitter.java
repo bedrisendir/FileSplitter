@@ -12,18 +12,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class BlockSplitter {
-	ArrayList<MappedByteBuffer> maps = new ArrayList<MappedByteBuffer>();
-	long chunkSize;
+public class BlockSplitter extends Splitter {
+	private ArrayList<MappedByteBuffer> maps = new ArrayList<MappedByteBuffer>();
+	private long chunkSize;
+	private String input_path;
+	private String output_path;
 
 	public BlockSplitter(long nChunkSize) {
 		chunkSize = nChunkSize;
 	}
 
-	public void map() {
-		File file = new File(
-				"/home/bsendir1/workspacemarla/FileSplitter/input/materials_dbv2-04052013.json");
-
+	private void map() {
+		File file = new File(input_path);
 		RandomAccessFile raf;
 		try {
 			raf = new RandomAccessFile(file, "r");
@@ -41,20 +41,17 @@ public class BlockSplitter {
 				map = chan.map(MapMode.READ_ONLY, chunkOff, chunkSize);
 				chunkOff += chunkSize;
 				maps.add(map);
-
 			}
 			raf.close();
 			long t1 = System.currentTimeMillis();
 			System.out.println("Mapping Took: " + (t1 - t0) + "ms");
 			System.out.println("Created " + maps.size());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
-	public void split() {
+	private void start_workers() {
 		int cores = Runtime.getRuntime().availableProcessors();
 		ExecutorService e = Executors.newFixedThreadPool(cores);
 		System.out.println("Executing with " + cores + " threads.");
@@ -67,41 +64,40 @@ public class BlockSplitter {
 		try {
 			e.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
 		long t1 = System.currentTimeMillis();
 		System.out.println("Splitting: " + (t1 - t0) + "ms");
 	}
-
-	public class SplitWorker implements Runnable {
+	
+	@Override
+	protected void split(String input, String output) {
+		input_path = input;
+		output_path = output;
+		map();
+		start_workers();
+	}
+	
+	private class SplitWorker implements Runnable {
 		MappedByteBuffer map;
 		int split_num;
 
 		public SplitWorker(MappedByteBuffer nmappedByteBuffer, int i) {
 			map = nmappedByteBuffer;
 			split_num = i;
-
 		}
 
 		public void run() {
-
-			System.out.println(split_num + " starts workin");
-
 			FileChannel wChannel;
 			try {
-				wChannel = new FileOutputStream(new File("splits/temp"
+				wChannel = new FileOutputStream(new File(output_path
 						+ split_num)).getChannel();
 				wChannel.write(map.load().asReadOnlyBuffer());
-				// maps.get(i).load().asReadOnlyBuffer()
 				wChannel.close();
-				// capacity gets map size
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
-
 }

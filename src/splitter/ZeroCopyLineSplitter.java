@@ -11,20 +11,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ZeroCopyLineSplitter {
-	ArrayList<Long> start = new ArrayList<Long>();
-	ArrayList<Long> end = new ArrayList<Long>();
-	long chunkSize;
-	long offset = 0;
-
+public class ZeroCopyLineSplitter extends Splitter{
+	private ArrayList<Long> start = new ArrayList<Long>();
+	private ArrayList<Long> end = new ArrayList<Long>();
+	private long chunkSize;
+	private long offset = 0;
+	private String input_path;
+	private String output_path;
+	
 	public ZeroCopyLineSplitter(long nChunkSize) {
 		chunkSize = nChunkSize;
 	}
 
-	public void map() {
-		File file = new File(
-				"/home/bsendir1/workspacemarla/materials_dbv2-04052013.json");
-
+	private void map() {
+		File file = new File(input_path);
 		try {
 			RandomAccessFile raf;
 			raf = new RandomAccessFile(file, "rw");
@@ -45,10 +45,8 @@ public class ZeroCopyLineSplitter {
 			raf.close();
 			long t1 = System.currentTimeMillis();
 			System.out.println("Mapping Took: " + (t1 - t0) + "ms");
-			System.out
-					.println("ITEMS " + start.size() + " " + end.size() + " ");
+
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -64,13 +62,11 @@ public class ZeroCopyLineSplitter {
 		return newp - old;
 	}
 
-	public void split() throws IOException {
+	private void start_workers(){
 		long t0 = System.currentTimeMillis();
 		int cores = Runtime.getRuntime().availableProcessors();
-		ExecutorService e = Executors.newFixedThreadPool(2);
+		ExecutorService e = Executors.newFixedThreadPool(cores);
 		System.out.println("Executing with " + cores + " threads.");
-	
-
 		for (int i = 0; i < start.size(); i++) {
 			e.execute(new SplitWorker(start.get(i), end.get(i), i));
 		}
@@ -78,13 +74,19 @@ public class ZeroCopyLineSplitter {
 		try {
 			e.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		long t1 = System.currentTimeMillis();
 		System.out.println("Splitting: " + (t1 - t0) + "ms");
 	}
-
+	
+	@Override
+	protected void split(String input, String output) {
+		input_path = input;
+		output_path = output;
+		map();
+		start_workers();
+	}
 	public class SplitWorker implements Runnable {
 		int split_num;
 		Long st;
@@ -95,31 +97,25 @@ public class ZeroCopyLineSplitter {
 			en = nend;
 			split_num = i;
 		}
-
+		
 		public void run() {
 			try {
 				FileChannel source = null;
 				FileChannel destination = null;
-				destination = new FileOutputStream(
-						"/home/bsendir1/workspacemarla/FileSplitter_new/splits/temp"
-								+ split_num).getChannel();
-				long p1 = System.currentTimeMillis();
-				source = new FileInputStream(
-						"/home/bsendir1/workspacemarla/materials_dbv2-04052013.json")
+				destination = new FileOutputStream(output_path + split_num).getChannel();
+				//long p1 = System.currentTimeMillis();
+				source = new FileInputStream(input_path)
 						.getChannel();
-				long p2 = System.currentTimeMillis();
-				System.out.println("Channel costs :" + (p2-p1));
+				//long p2 = System.currentTimeMillis();
+				//System.out.println("Channel costs :" + (p2-p1));
 				source.position(st);
-				long p3 = System.currentTimeMillis();
-				System.out.println("Seeking costs :" + (p3-p2));
+				//long p3 = System.currentTimeMillis();
+				//System.out.println("Seeking costs :" + (p3-p2));
 				destination.transferFrom(source,0,en);
-				long p4 = System.currentTimeMillis();
-				System.out.println("Transfer costs :" + (p4-p3));
-				System.out.println("Split "+ split_num + " left source at "+ source.position());
+				//long p4 = System.currentTimeMillis();
+				//System.out.println("Transfer costs :" + (p4-p3));
 				destination.close();
-
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
