@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import splitter.AsyncFileSplitter;
+import splitter.BlockRegexSplitter;
 import splitter.RegexSplitter;
 import splitter.Splitter;
 import splitter.XMLSplitter;
@@ -16,11 +17,11 @@ public class Driver {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
-		long blocksize=64L*1024*1024; //BlockSplitter + ZeroCopyLineSplitter + BlockLineSplitter + AsyncFileSplitter
+		long blocksize=32L*1024*1024; //BlockSplitter + ZeroCopyLineSplitter + BlockLineSplitter + AsyncFileSplitter
 		Pattern p = Pattern.compile("<a href='(.*?)'>"); //RegexSplitter
 		String starttag="<dataset "; //XML Splitter
 		String endtag="</dataset>"; //XML Splitter
-		Splitter s=new ZeroCopyLineSplitter(blocksize);
+		Splitter s=new BlockRegexSplitter(p,blocksize);
 		s.make_splits();
 	}
 

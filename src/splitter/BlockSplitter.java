@@ -25,6 +25,7 @@ public class BlockSplitter extends Splitter {
 	private void map() {
 		File file = new File(input_path);
 		RandomAccessFile raf;
+	
 		try {
 			raf = new RandomAccessFile(file, "r");
 			System.out.println(file.length());
@@ -94,6 +95,7 @@ public class BlockSplitter extends Splitter {
 				wChannel = new FileOutputStream(new File(output_path
 						+ split_num)).getChannel();
 				wChannel.write(map.load().asReadOnlyBuffer());
+				
 				wChannel.close();
 			} catch (IOException e) {
 				e.printStackTrace();

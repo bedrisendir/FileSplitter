@@ -106,6 +106,7 @@ public class BlockLineSplitter extends Splitter{
 			try {
 				wChannel = new FileOutputStream(new File(output_path
 						+ split_num)).getChannel();
+				
 				wChannel.write(map.load().asReadOnlyBuffer());
 				wChannel.close();
 			} catch (IOException e) {

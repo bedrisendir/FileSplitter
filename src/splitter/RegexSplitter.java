@@ -101,7 +101,6 @@ public class RegexSplitter extends Splitter {
 				e.printStackTrace();
 			}
 		}
-		
 		try {
 			if (group_id != -1) {
 				writer.write((m.group(group_id)) + "\n");
